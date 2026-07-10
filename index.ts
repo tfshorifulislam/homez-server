@@ -27,20 +27,31 @@ const client = new MongoClient(uri, {
 });
 
 // ================= MAIN RUN =================
-
 async function run(): Promise<void> {
   try {
     // await client.connect();
 
     const db = client.db("homez");
-    const collectionallitems = db.collection('all-items');
+    const collectionallproperty = db.collection('all-property');
 
     // ================= HOME =================
     app.get("/", (req: Request, res: Response) => {
       res.send("Server is running!");
     });
 
+    // ======================  All property ==========================
+    app.get('/api/all-properties', async (req: Request, res: Response) => {
+      
+      const query: Record<string, unknown> = {};
 
+      if (req.query.isActive) {
+        query.isActive = req.query.isActive;
+      }
+      const cursor = collectionallproperty.find(query).sort({ createdAt: -1 })
+
+      const result = await cursor.toArray();
+      res.send(result);
+    })
 
 
     console.log("MongoDB connected successfully");
