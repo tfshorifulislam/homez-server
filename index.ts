@@ -61,42 +61,69 @@ async function run(): Promise<void> {
         query.category = {
           $regex: `^${String(req.query.type)}$`,
           $options: "i",
-        }};
-
-        let sortOption: Record<string, 1 | -1> = {
-          createdAt: -1,
-        };
-
-        if (req.query.sort === "low-high") {
-          sortOption = { price: 1 };
         }
+      };
 
-        if (req.query.sort === "high-low") {
-          sortOption = { price: -1 };
-        }
+      let sortOption: Record<string, 1 | -1> = {
+        createdAt: -1,
+      };
 
-        const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 12;
+      if (req.query.sort === "low-high") {
+        sortOption = { price: 1 };
+      }
 
-        const skip = (page - 1) * limit;
-        const total = await collectionallproperty.countDocuments(query);
+      if (req.query.sort === "high-low") {
+        sortOption = { price: -1 };
+      }
 
-        const cursor = collectionallproperty
-          .find(query)
-          .sort(sortOption)
-          .skip(skip)
-          .limit(limit)
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 12;
 
-        const result = await cursor.toArray();
-        res.send({
-          data: result,
-          total,
-          currentPage: page,
-          totalPages: Math.ceil(total / limit),
+      const skip = (page - 1) * limit;
+      const total = await collectionallproperty.countDocuments(query);
+
+      const cursor = collectionallproperty
+        .find(query)
+        .sort(sortOption)
+        .skip(skip)
+        .limit(limit)
+
+      const result = await cursor.toArray();
+      res.send({
+        data: result,
+        total,
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+      });
+    })
+
+
+    // ================== Details Page API ================
+
+    app.get("/api/properties/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        const property = await collectionallproperty.findOne({
+          _id: new ObjectId(id),
         });
-      })
 
+        if (!property) {
+          return res.status(404).send({
+            message: "Property not found",
+          });
+        }
 
+        res.send(property);
+
+      } catch (error) {
+        res.status(500).send({
+          message: "Failed to get property details",
+        });
+      }
+    });
+
+    
 
     console.log("MongoDB connected successfully");
   } catch (error) {
