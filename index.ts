@@ -123,13 +123,24 @@ async function run(): Promise<void> {
       }
     });
 
+    // ===================== my properties page ==================
+    app.get("/api/my-properties/:email", async (req: Request, res: Response) => {
+      const { email } = req.params;
+
+      const result = await collectionallproperty
+        .find({ userEmail: email })
+        .sort({ _id: -1 })
+        .toArray();
+
+      res.send(result);
+    });
+
     //=================== add property aip ======================
     app.post('/api/addproperty', async (req: Request, res: Response) => {
       const addProperty = req.body;
       const result = await collectionallproperty.insertOne(addProperty)
       res.send(result);
-    }
-    )
+    })
 
     console.log("MongoDB connected successfully");
   } catch (error) {
