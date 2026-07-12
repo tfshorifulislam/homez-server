@@ -123,7 +123,13 @@ async function run(): Promise<void> {
       }
     });
 
-    
+    //=================== add property aip ======================
+    app.post('/api/addproperty', async (req: Request, res: Response) => {
+      const addProperty = req.body;
+      const result = await collectionallproperty.insertOne(addProperty)
+      res.send(result);
+    }
+    )
 
     console.log("MongoDB connected successfully");
   } catch (error) {
