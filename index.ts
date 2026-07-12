@@ -33,6 +33,7 @@ async function run(): Promise<void> {
 
     const db = client.db("homez");
     const collectionallproperty = db.collection('all-property');
+    const wishlistCollection = db.collection('wishlist');
 
     // ================= HOME =================
     app.get("/", (req: Request, res: Response) => {
@@ -145,7 +146,6 @@ async function run(): Promise<void> {
     //=============== delete my property ============
     app.delete("/api/property/:id", async (req: Request, res: Response) => {
       const id = req.params.id as string;
-
       const result = await collectionallproperty.deleteOne({
         _id: new ObjectId(id),
       });
@@ -153,6 +153,31 @@ async function run(): Promise<void> {
       res.send(result);
     });
 
+    //================= wishlist ===================
+    app.post("/api/wishlist", async (req: Request, res: Response) => {
+      const { propertyId, userEmail } = req.body;
+
+      const exists = await wishlistCollection.findOne({
+        propertyId,
+        userEmail,
+      });
+
+      if (exists) {
+        return res.status(400).send({
+          message: "Already saved",
+        });
+      }
+
+      const result = await wishlistCollection.insertOne({
+        propertyId,
+        userEmail,
+        createdAt: new Date(),
+      });
+
+      res.send(result);
+    });
+
+    
 
 
     console.log("MongoDB connected successfully");
