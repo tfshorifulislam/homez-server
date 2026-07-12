@@ -177,7 +177,15 @@ async function run(): Promise<void> {
       res.send(result);
     });
 
-    
+    app.get("/api/wishlist/:email", async (req: Request, res: Response) => {
+      const { email } = req.params;
+
+      const result = await wishlistCollection
+        .find({ userEmail: email })
+        .toArray();
+
+      res.send(result);
+    });
 
 
     console.log("MongoDB connected successfully");
