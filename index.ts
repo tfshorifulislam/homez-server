@@ -92,6 +92,13 @@ async function run(): Promise<void> {
         .limit(limit)
 
       const result = await cursor.toArray();
+
+      console.log("Total:", total);
+      console.log(result.map((item) => ({
+        title: item.title,
+        isActive: item.isActive,
+      })));
+
       res.send({
         data: result,
         total,
@@ -270,6 +277,25 @@ async function run(): Promise<void> {
       });
     });
 
+    app.delete("/api/property/reject/:id", async (req: Request, res: Response) => {
+      const id = req.params.id as string;
+
+      const result = await inActiveCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+
+      if (result.deletedCount === 0) {
+        return res.status(404).send({
+          success: false,
+          message: "Property not found",
+        });
+      }
+
+      res.send({
+        success: true,
+        message: "Property rejected successfully",
+      });
+    });
 
 
     console.log("MongoDB connected successfully");
