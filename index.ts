@@ -228,10 +228,49 @@ async function run(): Promise<void> {
     });
 
     //=============== all user get ====================
-    app.get('/api/user', async (req:Request, res: Response) => {
+    app.get('/api/user', async (req: Request, res: Response) => {
       const users = await userCollection.find().toArray();
       res.send(users);
     })
+
+    //=============== inactive properties get ====================
+    app.get('/api/inactive', async (req: Request, res: Response) => {
+      const users = await inActiveCollection.find().toArray();
+      res.send(users);
+    })
+
+    // Accept Property
+    app.patch("/api/property/accept/:id", async (req: Request, res: Response) => {
+      const id = req.params.id as string;
+
+      const property = await inActiveCollection.findOne({
+        _id: new ObjectId(id),
+      });
+
+      if (!property) {
+        return res.status(404).send({
+          message: "Property not found",
+        });
+      }
+
+      const { _id, ...propertyData } = property;
+
+      await collectionallproperty.insertOne({
+        ...propertyData,
+        isActive: "active",
+      });
+
+      await inActiveCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+
+      res.send({
+        success: true,
+        message: "Property approved successfully",
+      });
+    });
+
+
 
     console.log("MongoDB connected successfully");
   } catch (error) {
