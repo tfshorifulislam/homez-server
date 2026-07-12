@@ -35,6 +35,7 @@ async function run(): Promise<void> {
     const collectionallproperty = db.collection('all-property');
     const inActiveCollection = db.collection('inActive');
     const wishlistCollection = db.collection('wishlist');
+    const userCollection = db.collection('user');
 
     // ================= HOME =================
     app.get("/", (req: Request, res: Response) => {
@@ -225,6 +226,12 @@ async function run(): Promise<void> {
 
       res.send(properties);
     });
+
+    //=============== all user get ====================
+    app.get('/api/user', async (req:Request, res: Response) => {
+      const users = await userCollection.find().toArray();
+      res.send(users);
+    })
 
     console.log("MongoDB connected successfully");
   } catch (error) {
