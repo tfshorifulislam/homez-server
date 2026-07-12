@@ -33,6 +33,7 @@ async function run(): Promise<void> {
 
     const db = client.db("homez");
     const collectionallproperty = db.collection('all-property');
+    const inActiveCollection = db.collection('inActive');
     const wishlistCollection = db.collection('wishlist');
 
     // ================= HOME =================
@@ -139,7 +140,7 @@ async function run(): Promise<void> {
     //=================== add property aip ======================
     app.post('/api/addproperty', async (req: Request, res: Response) => {
       const addProperty = req.body;
-      const result = await collectionallproperty.insertOne(addProperty)
+      const result = await inActiveCollection.insertOne(addProperty)
       res.send(result);
     })
 
@@ -187,6 +188,43 @@ async function run(): Promise<void> {
       res.send(result);
     });
 
+    // Delete wishlist
+    app.delete("/api/wishlist", async (req: Request, res: Response) => {
+      const { propertyId, userEmail } = req.body;
+
+      const result = await wishlistCollection.deleteOne({
+        propertyId,
+        userEmail,
+      });
+
+      if (result.deletedCount === 0) {
+        return res.status(404).send({
+          message: "Wishlist item not found",
+        });
+      }
+
+      res.send({
+        message: "Removed from wishlist",
+      });
+    });
+
+    app.get("/api/wishlist/properties/:email", async (req: Request, res: Response) => {
+      const { email } = req.params;
+
+      const wishlist = await wishlistCollection.find({
+        userEmail: email,
+      }).toArray();
+
+      const propertyIds = wishlist.map(
+        (item) => new ObjectId(item.propertyId)
+      );
+
+      const properties = await collectionallproperty.find({
+        _id: { $in: propertyIds },
+      }).toArray();
+
+      res.send(properties);
+    });
 
     console.log("MongoDB connected successfully");
   } catch (error) {
