@@ -142,6 +142,19 @@ async function run(): Promise<void> {
       res.send(result);
     })
 
+    //=============== delete my property ============
+    app.delete("/api/property/:id", async (req: Request, res: Response) => {
+      const id = req.params.id as string;
+
+      const result = await collectionallproperty.deleteOne({
+        _id: new ObjectId(id),
+      });
+
+      res.send(result);
+    });
+
+
+
     console.log("MongoDB connected successfully");
   } catch (error) {
     console.error(error);
