@@ -149,14 +149,14 @@ async function run(): Promise<void> {
     });
 
     //=================== add property aip ======================
-    app.post('/api/addproperty', async (req: Request, res: Response) => {
+    app.post('/api/addproperty', verifyToken, async (req: Request, res: Response) => {
       const addProperty = req.body;
       const result = await inActiveCollection.insertOne(addProperty)
       res.send(result);
     })
 
     //=============== delete my property ============
-    app.delete("/api/property/:id", async (req: Request, res: Response) => {
+    app.delete("/api/property/:id", verifyToken, async (req: Request, res: Response) => {
       const id = req.params.id as string;
       const result = await collectionallproperty.deleteOne({
         _id: new ObjectId(id),
@@ -166,7 +166,7 @@ async function run(): Promise<void> {
     });
 
     //================= wishlist ===================
-    app.post("/api/wishlist", async (req: Request, res: Response) => {
+    app.post("/api/wishlist", verifyToken, async (req: Request, res: Response) => {
       const { propertyId, userEmail } = req.body;
 
       const exists = await wishlistCollection.findOne({
@@ -189,7 +189,7 @@ async function run(): Promise<void> {
       res.send(result);
     });
 
-    app.get("/api/wishlist/:email", async (req: Request, res: Response) => {
+    app.get("/api/wishlist/:email", verifyToken, async (req: Request, res: Response) => {
       const { email } = req.params;
 
       const result = await wishlistCollection
@@ -200,7 +200,7 @@ async function run(): Promise<void> {
     });
 
     // Delete wishlist
-    app.delete("/api/wishlist", async (req: Request, res: Response) => {
+    app.delete("/api/wishlist", verifyToken, async (req: Request, res: Response) => {
       const { propertyId, userEmail } = req.body;
 
       const result = await wishlistCollection.deleteOne({
@@ -219,7 +219,7 @@ async function run(): Promise<void> {
       });
     });
 
-    app.get("/api/wishlist/properties/:email", async (req: Request, res: Response) => {
+    app.get("/api/wishlist/properties/:email", verifyToken, async (req: Request, res: Response) => {
       const { email } = req.params;
 
       const wishlist = await wishlistCollection.find({
@@ -238,19 +238,19 @@ async function run(): Promise<void> {
     });
 
     //=============== all user get ====================
-    app.get('/api/user', async (req: Request, res: Response) => {
+    app.get('/api/user', verifyToken, async (req: Request, res: Response) => {
       const users = await userCollection.find().toArray();
       res.send(users);
     })
 
     //=============== inactive properties get ====================
-    app.get('/api/inactive', async (req: Request, res: Response) => {
+    app.get('/api/inactive', verifyToken, async (req: Request, res: Response) => {
       const users = await inActiveCollection.find().toArray();
       res.send(users);
     })
 
     // Accept Property
-    app.patch("/api/property/accept/:id", async (req: Request, res: Response) => {
+    app.patch("/api/property/accept/:id", verifyToken, async (req: Request, res: Response) => {
       const id = req.params.id as string;
 
       const property = await inActiveCollection.findOne({
@@ -280,7 +280,7 @@ async function run(): Promise<void> {
       });
     });
 
-    app.delete("/api/property/reject/:id", async (req: Request, res: Response) => {
+    app.delete("/api/property/reject/:id", verifyToken, async (req: Request, res: Response) => {
       const id = req.params.id as string;
 
       const result = await inActiveCollection.deleteOne({
