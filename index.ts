@@ -46,7 +46,7 @@ async function run(): Promise<void> {
     });
 
     // ====================== get All active property by query ==========================
-    app.get('/api/all-properties', verifyToken, async (req: Request, res: Response) => {
+    app.get('/api/all-properties', async (req: Request, res: Response) => {
 
       const query: Record<string, unknown> = {};
 
@@ -137,7 +137,7 @@ async function run(): Promise<void> {
     });
 
     // ===================== my properties page ==================
-    app.get("/api/my-properties/:email", async (req: Request, res: Response) => {
+    app.get("/api/my-properties/:email", verifyToken, async (req: Request, res: Response) => {
       const { email } = req.params;
 
       const result = await collectionallproperty

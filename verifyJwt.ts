@@ -5,20 +5,21 @@ export interface AuthenticatedRequest extends Request {
     user?: any;
 }
 
+
 let JWKS: ReturnType<typeof createRemoteJWKSet> | null = null;
 
 
 const getJWKS = () => {
     if (JWKS) return JWKS;
 
-    const clientUrl = process.env.NEXT_PUBLIC_CLIENT_URL;
-    if (!clientUrl) {
+    const authUrl = process.env.BETTER_AUTH_URL;
+    if (!authUrl) {
         console.error('CRITICAL ERROR: NEXT_PUBLIC_CLIENT_URL environment variable is missing.');
         return null;
     }
 
     try {
-        const jwksUrl = new URL(`${clientUrl}/api/auth/jwks`);
+        const jwksUrl = new URL(`${authUrl}/api/auth/jwks`);
         JWKS = createRemoteJWKSet(jwksUrl);
         return JWKS;
     } catch (urlError) {
@@ -28,8 +29,8 @@ const getJWKS = () => {
 };
 
 export const verifyToken = async (
-    req: AuthenticatedRequest, 
-    res: Response, 
+    req: AuthenticatedRequest,
+    res: Response,
     next: NextFunction
 ): Promise<Response | void> => {
     const token = req?.headers?.authorization;
