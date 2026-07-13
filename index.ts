@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
+import { verifyToken } from './verifyJwt';
 
 dotenv.config();
 
@@ -26,6 +27,8 @@ const client = new MongoClient(uri, {
   },
 });
 
+
+
 // ================= MAIN RUN =================
 async function run(): Promise<void> {
   try {
@@ -43,7 +46,7 @@ async function run(): Promise<void> {
     });
 
     // ====================== get All active property by query ==========================
-    app.get('/api/all-properties', async (req: Request, res: Response) => {
+    app.get('/api/all-properties', verifyToken, async (req: Request, res: Response) => {
 
       const query: Record<string, unknown> = {};
 
