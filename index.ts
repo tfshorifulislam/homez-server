@@ -1,8 +1,10 @@
 import express, { Request, Response } from "express";
+
 import cors from "cors";
 import dotenv from "dotenv";
 import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
-import { verifyToken } from './verifyJwt';
+import { verifyToken } from "./verifyJwt";
+
 
 dotenv.config();
 
@@ -310,5 +312,5 @@ async function run(): Promise<void> {
 run().catch(console.error);
 
 app.listen(port, () => {
-  console.log(`🚀 Server running on http://localhost:${port}`);
+  // console.log(`Server running on http://localhost:${port}`);
 });

@@ -1,29 +1,42 @@
-import { Request, Response, NextFunction } from 'express';
-import { jwtVerify, createRemoteJWKSet } from 'jose';
+import { Request, Response, NextFunction } from "express";
+import { jwtVerify, createRemoteJWKSet } from "jose";
 
 export interface AuthenticatedRequest extends Request {
     user?: any;
 }
 
+let jose: typeof import("jose") | null = null;
+let JWKS: ReturnType<(typeof import("jose"))["createRemoteJWKSet"]> | null = null;
 
-let JWKS: ReturnType<typeof createRemoteJWKSet> | null = null;
+// jose lazy load
+const getJose = async () => {
+    if (!jose) {
+        jose = await import("jose");
+    }
+    return jose;
+};
 
-
-const getJWKS = () => {
+// JWKS cache
+const getJWKS = async () => {
     if (JWKS) return JWKS;
 
     const authUrl = process.env.BETTER_AUTH_URL;
+
     if (!authUrl) {
-        console.error('CRITICAL ERROR: NEXT_PUBLIC_CLIENT_URL environment variable is missing.');
+        console.error("BETTER_AUTH_URL is missing");
         return null;
     }
 
     try {
+        const { createRemoteJWKSet } = await getJose();
+
         const jwksUrl = new URL(`${authUrl}/api/auth/jwks`);
+
         JWKS = createRemoteJWKSet(jwksUrl);
+
         return JWKS;
-    } catch (urlError) {
-        console.error('CRITICAL ERROR: Invalid NEXT_PUBLIC_CLIENT_URL format.', urlError);
+    } catch (error) {
+        console.error("Failed to create JWKS", error);
         return null;
     }
 };
@@ -33,29 +46,43 @@ export const verifyToken = async (
     res: Response,
     next: NextFunction
 ): Promise<Response | void> => {
-    const token = req?.headers?.authorization;
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+        return res.status(401).json({
+            message: "Unauthorized: No token provided",
+        });
+    }
+
+    const token = authHeader.split(" ")[1];
 
     if (!token) {
-        return res.status(401).send({ message: 'Unauthorized: No token provided' });
+        return res.status(401).json({
+            message: "Unauthorized: Invalid token format",
+        });
     }
 
-    const tokenParts = token.split(' ')[1];
+    const jwks = await getJWKS();
 
-    if (!tokenParts) {
-        return res.status(401).send({ message: 'Unauthorized: Invalid token format' });
-    }
-
-    const jwksSet = getJWKS();
-    if (!jwksSet) {
-        return res.status(500).send({ message: 'Internal Server Error: Auth configuration missing' });
+    if (!jwks) {
+        return res.status(500).json({
+            message: "Internal Server Error",
+        });
     }
 
     try {
-        const { payload } = await jwtVerify(tokenParts, jwksSet);
+        const { jwtVerify } = await getJose();
+
+        const { payload } = await jwtVerify(token, jwks);
+
         req.user = payload;
+
         next();
     } catch (error) {
-        console.log('Token verification failed:', error);
-        return res.status(401).send({ message: 'Unauthorized: Token is invalid or expired' });
+        console.error("JWT Verify Error:", error);
+
+        return res.status(401).json({
+            message: "Unauthorized: Invalid or expired token",
+        });
     }
 };
